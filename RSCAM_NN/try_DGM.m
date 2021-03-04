@@ -5,13 +5,17 @@ function try_DGM
     NSteps = 10000;
     
     % No. neurons in hidden layer
-    m = 3;
+    m = 1;
     
     x = linspace(0, 1, 100);
     
     % Function to approximate
     % df_dx = g
+    % g = 1 
     g = ones(100, 1);
+    
+    % Soln: f = x
+    h = x;
     
     % Inital weights and biases
     % Note: There is 1 hidden layer with m nodes
@@ -21,7 +25,7 @@ function try_DGM
     B2 = randn(1, 1);
     
     % Update parameters for final weights and biases
-    [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps);
+    [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps);
     
     % Run final approximation
     approx = network_layer(x, W1, W2, B1, B2);
@@ -29,9 +33,9 @@ function try_DGM
     % Plot against original function
     figure(1)
     plot(x, approx)
-    %hold on
-    %plot(x, 1)
-    %hold off
+    hold on
+    plot(x, h)
+    hold off
     
 end
 
@@ -53,7 +57,7 @@ function x_out = network_layer(x, W1, W2, B1, B2)
     end
 end
 
-function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps)
+function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps)
 
     % Loop through the number of iterations
     for N=1:NSteps
@@ -66,6 +70,7 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps)
 
             % C = (f'-g)^2
             % dC/dP = a(f'-g)*df'/dP
+            % f = W2*a(W1*x + B1) + B1
             
             % Partial derivatives of f
             df_dx = W2*W1*a'*(1-a);
@@ -78,11 +83,32 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps)
             df_dx_b2 = 0;
                
             % Partial derivatives of cost function
-            dC_dw1 = 2*(df_dx - g(idx))*df_dx_w1;
-            dC_db1 = 2*(df_dx - g(idx))*df_dx_b1;
-            dC_dw2 = 2*(df_dx - g(idx))*df_dx_w2;
-            dC_db2 = 2*(df_dx - g(idx))*df_dx_b2;
+            dC1_dw1 = 2*(df_dx - g(idx))*df_dx_w1;
+            dC1_db1 = 2*(df_dx - g(idx))*df_dx_b1;
+            dC1_dw2 = 2*(df_dx - g(idx))*df_dx_w2;
+            dC1_db2 = 2*(df_dx - g(idx))*df_dx_b2;
 
+            % C2 = (f_0 - h_0)^2
+            % dC2_dP = 2*(f_0 - h_0)*df/dP(0) 
+            a_0 = 1./(1 + exp(-(W1*x(1) + B1)));
+            
+            df_dw1_0 = W2*a_0.*(1-a_0)*x(1);
+            df_db1_0 = W2*a_0.*(1-a_0);
+            df_dw2_0 = a_0;
+            df_db2_0 = 1;
+            
+            f_0 = network_layer(x(1), W1, W2, B1, B2);
+            dC2_dw1 = 2*df_dw1_0*(f_0 - h(1));
+            dC2_db1 = 2*df_db1_0*(f_0 - h(1));
+            dC2_dw2 = 2*df_dw2_0*(f_0 - h(1));
+            dC2_db2 = 2*df_db2_0*(f_0 - h(1));
+            
+            % Add loss functions 
+            dC_dw1 = dC1_dw1 + dC2_dw1;
+            dC_db1 = dC1_db1 + dC2_db1;
+            dC_dw2 = dC1_dw2 + dC2_dw2;
+            dC_db2 = dC1_db2 + dC2_db2;
+            
             % Updating weights and biases
             W1 = W1 - eps*dC_dw1;
             B1 = B1 - eps*dC_db1;
