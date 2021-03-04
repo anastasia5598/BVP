@@ -17,8 +17,8 @@ function initialise_DRM
     
     % Inital weights and biases
     % Note: There is 1 hidden layer with m nodes
-    W1 = randn(m, 1);
-    W2 = randn(1, m);
+    W1 = zeros(m, 1);
+    W2 = zer(1, m);
     B1 = randn(m, 1);
     B2 = randn(1, 1);
     
