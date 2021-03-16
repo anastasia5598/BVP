@@ -5,7 +5,7 @@ function try_DGM
     NSteps = 10000;
     
     % No. neurons in hidden layer
-    m = 1;
+    m = 10;
     
     x = linspace(0, 1, 100);
     
@@ -97,17 +97,32 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps)
             df_dw2_0 = a_0;
             df_db2_0 = 1;
             
+            a_1 = 1./(1 + exp(-(W1*1 + B1)));
+            
+            df_dw1_1 = W2*a_1.*(1-a_1)*x(end);
+            df_db1_1 = W2*a_1.*(1-a_1);
+            df_dw2_1 = a_1;
+            df_db2_1 = 1;
+            
+            % Boundary Conditions for x = 0
             f_0 = network_layer(x(1), W1, W2, B1, B2);
             dC2_dw1 = 2*df_dw1_0*(f_0 - h(1));
             dC2_db1 = 2*df_db1_0*(f_0 - h(1));
             dC2_dw2 = 2*df_dw2_0*(f_0 - h(1));
             dC2_db2 = 2*df_db2_0*(f_0 - h(1));
             
+            % Boundary Conditions for x = 1
+            f_end = network_layer(x(end), W1, W2, B1, B2);
+            dC3_dw1 = 2*df_dw1_1*(f_end - h(end));
+            dC3_db1 = 2*df_db1_1*(f_end - h(end));
+            dC3_dw2 = 2*df_dw2_1*(f_end - h(end));
+            dC3_db2 = 2*df_db2_1*(f_end - h(end));
+            
             % Add loss functions 
-            dC_dw1 = dC1_dw1 + dC2_dw1;
-            dC_db1 = dC1_db1 + dC2_db1;
-            dC_dw2 = dC1_dw2 + dC2_dw2;
-            dC_db2 = dC1_db2 + dC2_db2;
+            dC_dw1 = dC1_dw1 + dC2_dw1 + dC3_dw1;
+            dC_db1 = dC1_db1 + dC2_db1 + dC3_db1;
+            dC_dw2 = dC1_dw2 + dC2_dw2 + dC3_dw2;
+            dC_db2 = dC1_db2 + dC2_db2 + dC3_db2;
             
             % Updating weights and biases
             W1 = W1 - eps*dC_dw1;
