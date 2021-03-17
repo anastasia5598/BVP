@@ -3,19 +3,23 @@ function try_DGM2
     % Learning rate and no. iterations
     eps = 0.01;
     NSteps = 10000;
+    beta = 30;
     
     % No. neurons in hidden layer
-    m = 1;
+    m = 10;
     
     x = linspace(0, 1, 100);
     
     % Function to approximate
-    % df_dx = g
+    % Lf = g
     % g = x 
     g = ones(100, 1);
     
     % Soln: f = x
     h = 0.5*(x + x.^2);
+    
+    % Set seed whilst checking
+    rng('default')
     
     % Inital weights and biases
     % Note: There is 1 hidden layer with m nodes
@@ -25,14 +29,14 @@ function try_DGM2
     B2 = randn(1, 1);
     
     % Update parameters for final weights and biases
-    [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps);
+    [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps, beta);
     
     % Run final approximation
     approx = network_layer(x, W1, W2, B1, B2);
     
     % Plot against original function
     figure(1)
-    plot(x, approx)
+    plot(x, approx, 'r--')
     hold on
     plot(x, h)
     hold off
@@ -57,7 +61,7 @@ function x_out = network_layer(x, W1, W2, B1, B2)
     end
 end
 
-function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps)
+function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps, beta)
 
     % Loop through the number of iterations
     for N=1:NSteps
@@ -78,22 +82,23 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps)
             df_dx2 = W2 * (W1 .* (1 - 2*a) .* W1 .* a .* (1 - a));
             
             % C = (f''-g)^2
-            % dC/dP = a (f''-g) * df''/dP
+            % dC/dP = 2 (f''-g) * df''/dP
             % f = W2*a(W1*x + B1) + B2
             
             % Partial derivatives of f
             
             df_dx2_dw1 = W2 * ((1 - 2*a) .* W1 .* a .* (1-a)) + W2 * (W1 .* (1 - 2*a) .* a .* (1-a)) - 2*x(idx) * W2 * (W1 .* a .* (1-a) .* W1 .* a .* (1-a)) + x(idx) * W2 *(W1 .*(1-2*a) .* W1 .* a .* (1-a) .* (1 - a)) - x(idx) * W2 * (W1 .* (1 - 2*a) .* W1 .* a .* a .* (1-a)); 
-            df_dx2_db1 = - 2* W2 * (W1 .* a * (1 - a)) + W2 * (W1 .* (1 - 2*a) .* W1 .* a .* (1 - a) .* (1 - a)) - W2 * (W1 .* (1 - 2*a) .*a .* (1 - a));
+            df_dx2_db1 = - 2* W2 * (W1 .* a .* (1 - a)) + W2 * (W1 .* (1 - 2*a) .* W1 .* a .* (1 - a) .* (1 - a)) - W2 * (W1 .* (1 - 2*a) .*a .* (1 - a));
             df_dx2_dw2 = W1 .* (1 - 2*a) .* W1 .* a .* (1-a);
             df_dx2_db2 = 0;
             
-            dC1_dw1 = 2*(df_dx2 - g(idx)).*df_dx2_dw1;
-            dC1_db1 = 2*(df_dx2 - g(idx)).*df_dx2_db1;
-            dC1_dw2 = 2*(df_dx2 - g(idx)).*df_dx2_dw2;
-            dC1_db2 = 2*(df_dx2 - g(idx)).*df_dx2_db2;
+            dC1_dw1 = 2*(df_dx2 - g(idx))*df_dx2_dw1;
+            dC1_db1 = 2*(df_dx2 - g(idx))*df_dx2_db1;
+            dC1_dw2 = 2*(df_dx2 - g(idx))*df_dx2_dw2;
+            dC1_db2 = 2*(df_dx2 - g(idx))*df_dx2_db2;
             
 
+            % Boundary Conditions for x = 0
             % C2 = (f_0 - h_0)^2
             % dC2_dP = 2*(f_0 - h_0)*df/dP(0) 
             a_0 = 1./(1 + exp(-(W1*x(1) + B1)));
@@ -103,14 +108,6 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps)
             df_dw2_0 = a_0;
             df_db2_0 = 1;
             
-            a_1 = 1./(1 + exp(-(W1*1 + B1)));
-            
-            df_dw1_1 = W2*a_1.*(1-a_1)*x(end);
-            df_db1_1 = W2*a_1.*(1-a_1);
-            df_dw2_1 = a_1;
-            df_db2_1 = 1;
-            
-            % Boundary Conditions for x = 0
             f_0 = network_layer(x(1), W1, W2, B1, B2);
             dC2_dw1 = 2*df_dw1_0*(f_0 - h(1));
             dC2_db1 = 2*df_db1_0*(f_0 - h(1));
@@ -118,17 +115,30 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps)
             dC2_db2 = 2*df_db2_0*(f_0 - h(1));
             
             % Boundary Conditions for x = 1
+            a_1 = 1./(1 + exp(-(W1*x(end) + B1)));
+            
+            df_dw1_1 = W2*(a_1.*(1-a_1))*x(end);
+            df_db1_1 = W2*(a_1.*(1-a_1));
+            df_dw2_1 = a_1;
+            df_db2_1 = 1;
+            
             f_end = network_layer(x(end), W1, W2, B1, B2);
             dC3_dw1 = 2*df_dw1_1*(f_end - h(end));
             dC3_db1 = 2*df_db1_1*(f_end - h(end));
             dC3_dw2 = 2*df_dw2_1*(f_end - h(end));
             dC3_db2 = 2*df_db2_1*(f_end - h(end));
             
+            dC_dw1 = dC1_dw1 + dC2_dw1;
+            dC_db1 = dC1_db1 + dC2_db1;
+            dC_dw2 = dC1_dw2 + dC2_dw2;
+            dC_db2 = dC1_db2 + dC2_db2;
+
+             
             % Add loss functions 
-            dC_dw1 = dC1_dw1 + dC2_dw1 + dC3_dw1;
-            dC_db1 = dC1_db1 + dC2_db1 + dC3_db1;
-            dC_dw2 = dC1_dw2 + dC2_dw2 + dC3_dw2;
-            dC_db2 = dC1_db2 + dC2_db2 + dC3_db2;
+            dC_dw1 = dC1_dw1 + beta*(dC2_dw1 + dC3_dw1);
+            dC_db1 = dC1_db1 + beta*(dC2_db1 + dC3_db1);
+            dC_dw2 = dC1_dw2 + beta*(dC2_dw2 + dC3_dw2);
+            dC_db2 = dC1_db2 + beta*(dC2_db2 + dC3_db2);
             
             % Updating weights and biases
             W1 = W1 - eps*dC_dw1;

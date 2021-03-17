@@ -3,10 +3,10 @@ function try_DGM
     % Learning rate and no. iterations
     eps = 0.01;
     NSteps = 10000;
-    beta = 30;
+    beta = 20;
     
     % No. neurons in hidden layer
-    m = 5;
+    m = 10;
     
     x = linspace(0, 1, 100);
     
