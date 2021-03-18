@@ -12,11 +12,11 @@ function try_DGM2
     
     % Function to approximate
     % Lf = g
-    % g = x 
-    g = ones(100, 1);
+    % g = -1 
+    g = - ones(100, 1);
     
-    % Soln: f = x
-    h = 0.5*(x + x.^2);
+    % Soln: f = 0.5x
+    h = 0.5*(x - x.^2);
     
     % Set seed whilst checking
     rng('default')
@@ -36,10 +36,15 @@ function try_DGM2
     
     % Plot against original function
     figure(1)
-    plot(x, approx, 'r--')
+    plot(x, approx, 'b--')
     hold on
     plot(x, h)
     hold off
+    
+    legend('Approximation','Solution')
+    title('DGM approximation against analytical solution for -\Deltau = 1')
+    xlabel('x')
+    ylabel('u(x)')
     
 end
 
