@@ -1,4 +1,4 @@
-function initialise_DRM
+function err = initialise_DRM
 
     % Learning rate and no. iterations
     eps = 1e-3;
@@ -36,10 +36,13 @@ function initialise_DRM
     hold on
     plot(x, sol(x))
     hold off
+    
+    legend('Approximation','Solution')
     title('DRM approximation against analytical solution for -\Deltau=1')
     xlabel('x')
     ylabel('u(x)')
     
+    err = abs(approx - sol(x)');
 end
 
 function x_out = network_layer(x, W1, W2, B1, B2)
