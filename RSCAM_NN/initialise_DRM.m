@@ -1,7 +1,7 @@
 function initialise_DRM
 
     % Learning rate and no. iterations
-    eps = 5e-3;
+    eps = 1e-3;
     NSteps = 1e5;
     beta = 30;
     
@@ -13,14 +13,15 @@ function initialise_DRM
     % Function to approximate
     % d^2f_dx^2 = g
     g = ones(10, 1);
-    sol = @(x) 1/2 * (x - x .^2);
+    sol = @(x)(x - x .^2);
     
     % Inital weights and biases
     % Note: There is 1 hidden layer with m nodes
-    W1 = 0.5*randn(m, 1);
-    W2 = 0.5*randn(1, m);
-    B1 = 0.5*randn(m, 1);
-    B2 = 0.5*randn(1, 1);
+    rng(10);
+    W1 = randn(m, 1);
+    W2 = randn(1, m);
+    B1 = randn(m, 1);
+    B2 = randn(1, 1);
     
     % Update parameters for final weights and biases
     [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps, beta);
@@ -65,9 +66,9 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps, bet
         for idx=1:length(x)
         
             % BC's - at 0 and 1
-            au0 = 1./(1 + exp(-(W1*0 + B1)));
+            au0 = 1./(1 + exp(-(W1*x(1) + B1)));
             u0 = W2 * au0 + B2;
-            au1 = 1./(1 + exp(-(W1*1+ B1)));
+            au1 = 1./(1 + exp(-(W1*x(end)+ B1)));
             u1 = W2 * au1 + B2;
         
             % Activation function
@@ -76,27 +77,26 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps, bet
             
             % partial derivative of C wrt u
             gradu = W2 * (W1 .* a .* (1-a));
-            
-            % delta - partial derivative of C wrt z
-            delta1 = a .* (1-a) .* (gradu * (W2 * W1) .* (1-2*a) - W2'*g(idx));
 
             % Partial derivatives of cost function
-            dC_dw1 = gradu*W2*(a .* (1-a));
-            dC_dw1 = dC_dw1 + gradu*W2*(W1.*a.*(1-a).*(1-a).*x(idx));
-            dC_dw1 = dC_dw1 + gradu*W2*(W1.*a.*a.*(a-1).*x(idx));
-            dC_dw1 = dC_dw1 - g(idx)*W2'.*a.*(1-a).*x(idx);
-            dC_dw1 = dC_dw1 + 2*beta*(u0*W2'.*au0.*(1-au0)*0 + u1*W2'.*au1.*(1-au1)*1);
-            dC_db1 = gradu * W2*(W1.*a.*(1-a).*(1-a));
-            dC_db1 = dC_db1 + gradu*W2*(W1.*a.*a.*(a-1));
-            dC_db1 = dC_db1 - g(idx)*W2'.*a.*(1-a);
-            dC_db1 = dC_db1 + 2*beta * (u0 * W2' .* au0 .* (1-au0) + u1 * W2' .* au1 .* (1-au1));
-            dC_dw2 = gradu .* W1 .* a .* (1-a) - g(idx) * a + beta *2*(u0 * au0 + u1 * au1);
+            dC_dw1 = abs(gradu)*W2*(a .* (1-a));
+            dC_dw1 = dC_dw1 + gradu*W2*(W1.*a.*(1-a).*(1-a)*x(idx));
+            dC_dw1 = dC_dw1 + gradu*W2*(W1.*a.*a.*(a-1)*x(idx));
+            dC_dw1 = dC_dw1 - g(idx)*W2*(a.*(1-a)*x(idx));
+            dC_dw1 = dC_dw1 + 2*beta*(u0*W2*(au0.*(1-au0)*x(1)) + u1*W2*(au1.*(1-au1)*x(end)));
+            
+            dC_db1 = abs(gradu) * W2*(W1.*a.*(1-a).*(1-a));
+            dC_db1 = dC_db1 + abs(gradu)*W2*(W1.*a.*a.*(a-1));
+            dC_db1 = dC_db1 - g(idx)*W2*(a.*(1-a));
+            dC_db1 = dC_db1 + 2*beta *(u0*W2*(au0.*(1-au0))+u1*W2*(au1.*(1-au1)));
+            
+            dC_dw2 = abs(gradu)*(W1.*a.*(1-a))'-g(idx)*a'+beta*2*(u0*au0'+u1*au1');
             dC_db2 = -g(idx) +beta*2*(u0 + u1);
             
             % Updating weights and biases
             W1 = W1 - eps*dC_dw1;
             B1 = B1 - eps*dC_db1;
-            W2 = W2 - eps*dC_dw2';
+            W2 = W2 - eps*dC_dw2;
             B2 = B2 - eps*dC_db2;
         end
     end
