@@ -136,13 +136,7 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, h, NSteps, eps, 
             dC3_db1 = 2*df_db1_1*(f_end - h(end));
             dC3_dw2 = 2*df_dw2_1*(f_end - h(end));
             dC3_db2 = 2*df_db2_1*(f_end - h(end));
-            
-            dC_dw1 = dC1_dw1 + dC2_dw1;
-            dC_db1 = dC1_db1 + dC2_db1;
-            dC_dw2 = dC1_dw2 + dC2_dw2;
-            dC_db2 = dC1_db2 + dC2_db2;
-
-             
+                      
             % Add loss functions 
             dC_dw1 = dC1_dw1 + beta*(dC2_dw1 + dC3_dw1);
             dC_db1 = dC1_db1 + beta*(dC2_db1 + dC3_db1);
