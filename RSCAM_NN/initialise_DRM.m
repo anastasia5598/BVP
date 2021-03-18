@@ -1,14 +1,14 @@
 function initialise_DRM
 
     % Learning rate and no. iterations
-    eps = 1e-3;
-    NSteps = 1e4;
-    beta = 30;
+    eps = 5e-3;
+    NSteps = 1e5;
+    beta = 40;
     
     % No. neurons in hidden layer
-    m = 5;
+    m = 10;
     
-    x = linspace(0, 1, 100);
+    x = linspace(0, 1, 10);
     
     % Function to approximate
     % d^2f_dx^2 = g
@@ -17,10 +17,10 @@ function initialise_DRM
     
     % Inital weights and biases
     % Note: There is 1 hidden layer with m nodes
-    W1 = randn(m, 1);
-    W2 = randn(1, m);
-    B1 = randn(m, 1);
-    B2 = randn(1, 1);
+    W1 = 0.5*randn(m, 1);
+    W2 = 0.5*randn(1, m);
+    B1 = 0.5*randn(m, 1);
+    B2 = 0.5*randn(1, 1);
     
     % Update parameters for final weights and biases
     [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps, beta);
