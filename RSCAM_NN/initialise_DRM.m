@@ -3,7 +3,7 @@ function initialise_DRM
     % Learning rate and no. iterations
     eps = 5e-3;
     NSteps = 1e5;
-    beta = 40;
+    beta = 30;
     
     % No. neurons in hidden layer
     m = 10;
@@ -12,7 +12,7 @@ function initialise_DRM
     
     % Function to approximate
     % d^2f_dx^2 = g
-    g = ones(100, 1);
+    g = ones(10, 1);
     sol = @(x) 1/2 * (x - x .^2);
     
     % Inital weights and biases
@@ -35,6 +35,9 @@ function initialise_DRM
     hold on
     plot(x, sol(x))
     hold off
+    title('DRM approximation against analytical solution for -\Deltau=1')
+    xlabel('x')
+    ylabel('u(x)')
     
 end
 
@@ -78,10 +81,17 @@ function [W1, W2, B1, B2] = update_params(W1, W2, B1, B2, x, g, NSteps, eps, bet
             delta1 = a .* (1-a) .* (gradu * (W2 * W1) .* (1-2*a) - W2'*g(idx));
 
             % Partial derivatives of cost function
-            dC_dw1 = delta1 * x(idx) + beta * (u1 *  W2' .* au1 .* (1-au1));
-            dC_db1 = delta1 + beta * (u0 * W2' .* au0 .* (1-au0) + u1 * W2' .* au1 .* (1-au1));
-            dC_dw2 = gradu .* W1 .* a .* (1-a) - g(idx) * a + beta * (u0 * au0 + u1 * au1);
-            dC_db2 = -g(idx) + beta*(u0 + u1);
+            dC_dw1 = gradu*W2*(a .* (1-a));
+            dC_dw1 = dC_dw1 + gradu*W2*(W1.*a.*(1-a).*(1-a).*x(idx));
+            dC_dw1 = dC_dw1 + gradu*W2*(W1.*a.*a.*(a-1).*x(idx));
+            dC_dw1 = dC_dw1 - g(idx)*W2'.*a.*(1-a).*x(idx);
+            dC_dw1 = dC_dw1 + 2*beta*(u0*W2'.*au0.*(1-au0)*0 + u1*W2'.*au1.*(1-au1)*1);
+            dC_db1 = gradu * W2*(W1.*a.*(1-a).*(1-a));
+            dC_db1 = dC_db1 + gradu*W2*(W1.*a.*a.*(a-1));
+            dC_db1 = dC_db1 - g(idx)*W2'.*a.*(1-a);
+            dC_db1 = dC_db1 + 2*beta * (u0 * W2' .* au0 .* (1-au0) + u1 * W2' .* au1 .* (1-au1));
+            dC_dw2 = gradu .* W1 .* a .* (1-a) - g(idx) * a + beta *2*(u0 * au0 + u1 * au1);
+            dC_db2 = -g(idx) +beta*2*(u0 + u1);
             
             % Updating weights and biases
             W1 = W1 - eps*dC_dw1;
