@@ -1,13 +1,5 @@
-function err = initialise_DGM
+function err = initialise_DGM(m, NSteps, eps, beta, to_plot)
 
-    % Learning rate and no. iterations
-    eps = 0.01;
-    NSteps = 10000;
-    beta = 30;
-    
-    % No. neurons in hidden layer
-    m = 10;
-    
     x = linspace(0, 1, 100);
     
     % Function to approximate
@@ -36,17 +28,19 @@ function err = initialise_DGM
     x = linspace(0, 1, 10000);
     approx = network_layer(x, W1, W2, B1, B2);
     
-    % Plot against original function
-    figure(1)
-    plot(x, approx, 'b--')
-    hold on
-    plot(x, sol(x))
-    hold off
-    
-    legend('Approximation','Solution')
-    title('DGM approximation against analytical solution for -\Deltau = 1')
-    xlabel('x')
-    ylabel('u(x)')
+    if to_plot == true
+        % Plot against original function
+        figure(1)
+        plot(x, approx, 'b--')
+        hold on
+        plot(x, sol(x))
+        hold off
+
+        legend('Approximation','Solution')
+        title('DGM approximation against analytical solution for -\Deltau = 1')
+        xlabel('x')
+        ylabel('u(x)')
+    end
     
     err = abs(approx - sol(x)');
     

@@ -1,18 +1,10 @@
-function err = initialise_DRM
-
-    % Learning rate and no. iterations
-    eps = 1e-3;
-    NSteps = 1e5;
-    beta = 30;
+function err = initialise_DRM(m, NSteps, eps, beta, to_plot)
     
-    % No. neurons in hidden layer
-    m = 10;
-    
-    x = linspace(0, 1, 10);
+    x = linspace(0, 1, 100);
     
     % Function to approximate
     % d^2f_dx^2 = g
-    g = ones(10, 1);
+    g = ones(100, 1);
     sol = @(x)(x - x .^2);
     
     % Inital weights and biases
@@ -30,17 +22,19 @@ function err = initialise_DRM
     x = linspace(0, 1, 10000);
     approx = network_layer(x, W1, W2, B1, B2);
     
-    % Plot against original function
-    figure(1)
-    plot(x, approx, 'r--')
-    hold on
-    plot(x, sol(x))
-    hold off
-    
-    legend('Approximation','Solution')
-    title('DRM approximation against analytical solution for -\Deltau=1')
-    xlabel('x')
-    ylabel('u(x)')
+    if to_plot == true
+        % Plot against original function
+        figure(1)
+        plot(x, approx, 'r--')
+        hold on
+        plot(x, sol(x))
+        hold off
+
+        legend('Approximation','Solution')
+        title('DRM approximation against analytical solution for -\Deltau=1')
+        xlabel('x')
+        ylabel('u(x)')
+    end 
     
     err = abs(approx - sol(x)');
 end
