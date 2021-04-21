@@ -5,7 +5,7 @@ function err = initialise_DRM(m, NSteps, eps, beta, to_plot)
     % Function to approximate
     % d^2f_dx^2 = g
     g = ones(100, 1);
-    sol = @(x)(x - x .^2);
+    sol = @(x) 1/2 * (x - x .^2);
     
     % Inital weights and biases
     % Note: There is 1 hidden layer with m nodes
