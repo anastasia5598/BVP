@@ -1,7 +1,7 @@
 function compare_beta
 
     % Learning rate, no. nodes and no. iterations
-    eps = 0.001;
+    eps = 1e-3;
     m = 10;
     NSteps = 10000;
     
